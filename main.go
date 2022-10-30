@@ -76,8 +76,13 @@ func (c caller) CallTELNET(ctx telnet.Context, w telnet.Writer, r telnet.Reader)
 				phase++
 			}
 
-			if (buffer == "000 COMMAND ERROR\n.\n") {
+			if (buffer == "001 COMMAND ERROR\n.\n") {
 				fmt.Println("processing command failed")
+				break
+			}
+
+			if (buffer == "002 LOGIN ERROR\n.\n") {
+				fmt.Println("login failed")
 				break
 			}
 
