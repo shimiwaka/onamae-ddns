@@ -2,20 +2,18 @@
 
 ## Overview
 
-実行すると、お名前.com の 指定のドメインの A レコードを実行マシンの現在のグローバル IP に更新する。
+When it was executed, it will update the A record for the specified domain on お名前.com to the current global IP address of the executing machine.
 
-これを cron などで定期的に実行することで IP アドレスが変わった時に自動更新して DDNS を実現できる。
-
-自動更新のクライアントは公式で存在するが Windows 専用であり、これは Linux や Mac でも使える。
+By running this periodically via cron, etc., DDNS can be made available by automatically updating the A record when the IP address changes.
 
 ## Usage
 
-1. `config.json` の設定を自身のお名前.com のものに書き換える。
+1. Update `config.json` with reference to `config.json.sample`
 
-1. `go build` でビルドする。
+1. Run `go build` in `./onamae-ddns` and generate executable binary `onamae-ddns`
 
-1. できた `onamae-ddns` を cron などで定期的に実行するようにする。
+1. Set to run `onamae-ddns` by cron
 
 ## Notes
 
-`go build` でビルドすると `config.json` の中身は実行バイナリに含まれる。`config.json` はセキュリティの観点からも削除してしまってよい。
+If you build with `go build`, the contents of `config.json` will be included in the executable binary. You would better remove `config.json` for security reasons.
