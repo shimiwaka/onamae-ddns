@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/reiver/go-telnet"
 	"github.com/reiver/go-oi"
+	"github.com/reiver/go-telnet"
 
 	"crypto/tls"
-	"net/http"
-	"io"
-	"encoding/json"
 	_ "embed"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 )
 
 type Phase int
@@ -25,16 +25,16 @@ const (
 )
 
 type configData struct {
-	Url string `json:"url"`
-	Port string `json:"port"`
-	User_id string `json:"user_id"`
-	Password string `json:"password"`
-	Hostname string `json:"hostname"`
-	Domname string `json:"domname"`
+	Url       string `json:"url"`
+	Port      string `json:"port"`
+	User_id   string `json:"user_id"`
+	Password  string `json:"password"`
+	Hostname  string `json:"hostname"`
+	Domname   string `json:"domname"`
 	IPaddress string
 }
 
-type caller struct{
+type caller struct {
 	Config configData
 }
 
@@ -50,21 +50,21 @@ func (c caller) CallTELNET(ctx telnet.Context, w telnet.Writer, r telnet.Reader)
 			fmt.Print(string(bytes))
 			buffer += string(bytes)
 
-			if (buffer == "000 COMMAND SUCCESSFUL\n.\n") {
+			if buffer == "000 COMMAND SUCCESSFUL\n.\n" {
 				buffer = ""
 				switch phase {
 				case LOGIN:
 					fmt.Println("LOGIN")
 					oi.LongWriteString(w, "LOGIN\n")
-					oi.LongWriteString(w, "USERID:" + c.Config.User_id + "\n")
-					oi.LongWriteString(w, "PASSWORD:" + c.Config.Password + "\n")
+					oi.LongWriteString(w, "USERID:"+c.Config.User_id+"\n")
+					oi.LongWriteString(w, "PASSWORD:"+c.Config.Password+"\n")
 					oi.LongWriteString(w, ".\n")
 				case MODIP:
 					fmt.Println("MODIP")
 					oi.LongWriteString(w, "MODIP\n")
-					oi.LongWriteString(w, "HOSTNAME:" + c.Config.Hostname + "\n")
-					oi.LongWriteString(w, "DOMNAME:" + c.Config.Domname + "\n")
-					oi.LongWriteString(w, "IPV4:" + c.Config.IPaddress + "\n")
+					oi.LongWriteString(w, "HOSTNAME:"+c.Config.Hostname+"\n")
+					oi.LongWriteString(w, "DOMNAME:"+c.Config.Domname+"\n")
+					oi.LongWriteString(w, "IPV4:"+c.Config.IPaddress+"\n")
 					oi.LongWriteString(w, ".\n")
 				case LOGOUT:
 					fmt.Println("LOGOUT")
@@ -76,12 +76,12 @@ func (c caller) CallTELNET(ctx telnet.Context, w telnet.Writer, r telnet.Reader)
 				phase++
 			}
 
-			if (buffer == "001 COMMAND ERROR\n.\n") {
+			if buffer == "001 COMMAND ERROR\n.\n" {
 				fmt.Println("processing command failed")
 				break
 			}
 
-			if (buffer == "002 LOGIN ERROR\n.\n") {
+			if buffer == "002 LOGIN ERROR\n.\n" {
 				fmt.Println("login failed")
 				break
 			}
@@ -123,7 +123,7 @@ func main() {
 	fmt.Println(c.IPaddress)
 
 	tlsConfig := &tls.Config{}
-	err = telnet.DialToAndCallTLS(c.Url + ":" + c.Port, caller{Config: c}, tlsConfig)
+	err = telnet.DialToAndCallTLS(c.Url+":"+c.Port, caller{Config: c}, tlsConfig)
 
 	if err != nil {
 		fmt.Println("connection failed")
