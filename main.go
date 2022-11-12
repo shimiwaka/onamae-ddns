@@ -38,6 +38,33 @@ type caller struct {
 	Config configData
 }
 
+func sendCmd(c caller, w telnet.Writer, phase Phase) Phase {
+	switch phase {
+	case LOGIN:
+		fmt.Println("LOGIN")
+		oi.LongWriteString(w, "LOGIN\n")
+		oi.LongWriteString(w, "USERID:"+c.Config.User_id+"\n")
+		oi.LongWriteString(w, "PASSWORD:"+c.Config.Password+"\n")
+		oi.LongWriteString(w, ".\n")
+	case MODIP:
+		fmt.Println("MODIP")
+		oi.LongWriteString(w, "MODIP\n")
+		oi.LongWriteString(w, "HOSTNAME:"+c.Config.Hostname+"\n")
+		oi.LongWriteString(w, "DOMNAME:"+c.Config.Domname+"\n")
+		oi.LongWriteString(w, "IPV4:"+c.Config.IPaddress+"\n")
+		oi.LongWriteString(w, ".\n")
+	case LOGOUT:
+		fmt.Println("LOGOUT")
+		oi.LongWriteString(w, "LOGOUT\n")
+		oi.LongWriteString(w, ".\n")
+	default:
+		return END
+	}
+	phase++
+
+	return phase
+}
+
 func (c caller) CallTELNET(ctx telnet.Context, w telnet.Writer, r telnet.Reader) {
 	p := make([]byte, 1, 256)
 	buffer := ""
@@ -50,40 +77,16 @@ func (c caller) CallTELNET(ctx telnet.Context, w telnet.Writer, r telnet.Reader)
 			fmt.Print(string(bytes))
 			buffer += string(bytes)
 
-			if buffer == "000 COMMAND SUCCESSFUL\n.\n" {
+			switch buffer {
+			case "000 COMMAND SUCCESSFUL\n.\n":
+				phase = sendCmd(c, w, phase)
 				buffer = ""
-				switch phase {
-				case LOGIN:
-					fmt.Println("LOGIN")
-					oi.LongWriteString(w, "LOGIN\n")
-					oi.LongWriteString(w, "USERID:"+c.Config.User_id+"\n")
-					oi.LongWriteString(w, "PASSWORD:"+c.Config.Password+"\n")
-					oi.LongWriteString(w, ".\n")
-				case MODIP:
-					fmt.Println("MODIP")
-					oi.LongWriteString(w, "MODIP\n")
-					oi.LongWriteString(w, "HOSTNAME:"+c.Config.Hostname+"\n")
-					oi.LongWriteString(w, "DOMNAME:"+c.Config.Domname+"\n")
-					oi.LongWriteString(w, "IPV4:"+c.Config.IPaddress+"\n")
-					oi.LongWriteString(w, ".\n")
-				case LOGOUT:
-					fmt.Println("LOGOUT")
-					oi.LongWriteString(w, "LOGOUT\n")
-					oi.LongWriteString(w, ".\n")
-				default:
-					phase = END
-				}
-				phase++
-			}
-
-			if buffer == "001 COMMAND ERROR\n.\n" {
+			case "001 COMMAND ERROR\n.\n":
 				fmt.Println("processing command failed")
-				break
-			}
-
-			if buffer == "002 LOGIN ERROR\n.\n" {
+				phase = END
+			case "002 LOGIN ERROR\n.\n":
 				fmt.Println("login failed")
-				break
+				phase = END
 			}
 
 			if phase >= END {
